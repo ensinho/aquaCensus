@@ -215,9 +215,15 @@
             const searchInput = document.getElementById('search-input');
             const favoritesBtn = document.getElementById('favorites-btn');
             const background = document.getElementById('background-animation');
+            const statusFilterContainer = document.getElementById('status-filter-container');
+            const filterIndicator = document.getElementById('filter-indicator');
+            const filterButtons = document.querySelectorAll('.filter-btn');
             
             let allSpecies = [];
             let favorites = JSON.parse(localStorage.getItem('aquaFavorites')) || [];
+            
+            let currentSearchTerm = '';
+            let currentStatusFilter = 'all';
             let showingFavorites = false;
 
             const speciesData = [
