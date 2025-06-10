@@ -466,6 +466,33 @@
                     closeModal();
                 }
             });
+
+            statusFilterContainer.addEventListener('click', e => {
+                const targetButton = e.target.closest('.filter-btn');
+                if (!targetButton) return;
+
+                showingFavorites = false;
+                favoritesBtn.classList.remove('text-yellow-500');
+
+                currentStatusFilter = targetButton.dataset.status;
+                updateFilterIndicator(targetButton);
+                applyFilters();
+            });
+
+            function updateFilterIndicator(activeButton) {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                activeButton.classList.add('active');
+                
+                const left = activeButton.offsetLeft;
+                const width = activeButton.offsetWidth;
+
+                filterIndicator.style.transform = `translateX(${left}px)`;
+                filterIndicator.style.width = `${width}px`;
+
+                filterIndicator.className = 'filter-indicator'; // Reset classes
+                filterIndicator.classList.add(statusColors[activeButton.dataset.status]);
+            }
+            
             searchInput.addEventListener('input', (e) => {
                 showingFavorites = false; 
                 favoritesBtn.classList.remove('text-yellow-400');
@@ -486,8 +513,13 @@
             // Inicialização
             function init() {
                 allSpecies = speciesData; 
-                renderSpecies(allSpecies);
                 createBubbles();
+                updateFilterIndicator(filterButtons[0]);
+                applyFilters();
+                window.addEventListener('resize', () => {
+                    const activeButton = document.querySelector('.filter-btn.active') || filterButtons[0];
+                    updateFilterIndicator(activeButton);
+                });
             }
 
             init();
