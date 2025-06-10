@@ -36,42 +36,44 @@
             }
         }
 
+        #background-animation::before, #background-animation::after, #background-animation span {
+            position: absolute;
+            border-radius: 50%;
+            animation-name: rise;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
         #background-animation::before {
             content: '';
-            position: absolute;
             width: 20px;
             height: 20px;
             background: rgba(0, 183, 255, 0.2);
-            border-radius: 50%;
             bottom: -20px;
             left: 10%;
-            animation: rise 25s infinite linear;
+            animation-duration: 25s;
             animation-delay: 2s;
             box-shadow: 0 0 10px rgba(0, 183, 255, 0.5), 0 0 20px rgba(0, 183, 255, 0.3);
         }
 
         #background-animation::after {
             content: '';
-            position: absolute;
             width: 30px;
             height: 30px;
             background: rgba(0, 225, 255, 0.15);
-            border-radius: 50%;
             bottom: -30px;
             left: 50%;
-            animation: rise 20s infinite linear;
+            animation-duration: 20s;
             box-shadow: 0 0 15px rgba(0, 225, 255, 0.4), 0 0 30px rgba(0, 225, 255, 0.2);
         }
 
         #background-animation span {
-            position: absolute;
             width: var(--size);
             height: var(--size);
             background: rgba(0, 200, 255, 0.2);
-            border-radius: 50%;
             bottom: calc(var(--size) * -1);
             left: var(--left);
-            animation: rise var(--duration) infinite linear;
+            animation-duration: var(--duration);
             animation-delay: var(--delay);
             box-shadow: 0 0 12px rgba(0, 200, 255, 0.4), 0 0 25px rgba(0, 200, 255, 0.2);
         }
@@ -106,31 +108,46 @@
             padding: 1.5rem;
         }
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #67e8f9; /* cyan-300 */
-        }
-
-        .card-scientific-name {
-            font-size: 1rem;
-            color: #22d3ee; /* cyan-400 */
-            font-style: italic;
-            opacity: 0.8;
-        }
-
         #species-modal.hidden {
             display: none;
         }
 
-        #modal-fav-btn.favorited {
-            color: #fb7185; /* rose-400 */
+        #modal-fav-btn.favorited { color: #fb7185; }
+        #modal-fav-btn.not-favorited { color: #4b5563; }
+        #modal-fav-btn:hover { transform: scale(1.2); }
+
+        .filter-container {
+            position: relative;
+            display: flex;
+            background-color: rgba(30, 41, 59, 0.7);
+            border-radius: 9999px;
+            padding: 4px;
         }
-        #modal-fav-btn.not-favorited {
-            color: #4b5563; /* gray-600 */
+
+        .filter-btn {
+            background-color: transparent;
+            color: #cbd5e1;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 9999px;
+            transition: color 0.3s ease;
+            position: relative;
+            z-index: 10;
         }
-        #modal-fav-btn:hover {
-            transform: scale(1.2);
+
+        .filter-btn.active {
+            color: white;
+        }
+
+        .filter-indicator {
+            position: absolute;
+            height: calc(100% - 8px);
+            top: 4px;
+            left: 0;
+            border-radius: 9999px;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s ease;
+            z-index: 5;
         }
     </style>
 </head>
@@ -139,13 +156,25 @@
     <div id="background-animation"></div>
 
     <header class="bg-black bg-opacity-50 backdrop-blur-md sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-cyan-400">AquaCensus</h1>
-            <div class="flex items-center space-x-4">
-                <input type="search" id="search-input" placeholder="Buscar espécie..." class="bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
-                <button id="favorites-btn" class="text-2xl text-pink-400 hover:text-pink-300 transition duration-300">
-                    &#9733; 
-                </button>
+        <nav class="container mx-auto px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">                
+                <h1 class="text-3xl font-bold text-cyan-400">AquaCensus</h1>
+            </div>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                 <div id="status-filter-container" class="filter-container">
+                    <span id="filter-indicator" class="filter-indicator"></span>
+                    <button class="filter-btn" data-status="all">Todos</button>
+                    <button class="filter-btn" data-status="Ameaçado">Ameaçado</button>
+                    <button class="filter-btn" data-status="Vulnerável">Vulnerável</button>
+                    <button class="filter-btn" data-status="Pouco preocupante">Menor Risco</button>
+                    <button class="filter-btn" data-status="Não avaliado">Não Avaliado</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="search" id="search-input" placeholder="Buscar..." class="w-32 md:w-auto bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                    <button id="favorites-btn" class="text-2xl text-pink-400 hover:text-pink-300 transition duration-300">
+                        &#9733; 
+                    </button>
+                </div>
             </div>
         </nav>
     </header>
@@ -279,8 +308,58 @@
                     diet: "Zooplâncton (capturado por pólipos)",
                     size: "Colônias de até 2 metros de diâmetro",
                     image: "https://abuddive.com.br/wp-content/uploads/2022/06/Diploria-labyrinthiformis.jpeg"
+                },
+                { 
+                    id: 9, 
+                    name: "Peixe-leão", 
+                    scientificName: "Pterois volitans", 
+                    description: "Espécie invasora com espinhos venenosos e coloração listrada.", 
+                    habitat: "Invasor no Atlântico", status: "Pouco preocupante", 
+                    diet: "Carnívoro", 
+                    size: "Até 47 cm", 
+                    image: "https://assojuris.org.br/wp-content/uploads/2022/08/Sem-titulo-22.jpg" 
+                },
+                { 
+                    id: 10, 
+                    name: "Lontra-marinha", 
+                    scientificName: "Enhydra lutris", 
+                    description: "Mamífero que flutua de costas e usa pedras para abrir conchas.", 
+                    habitat: "Costas do Pacífico Norte", 
+                    status: "Ameaçado", 
+                    diet: "Invertebrados", 
+                    size: "Até 1.5 metros", 
+                    image: "https://cms-imgp.jw-cdn.org/img/p/102017094/univ/art/102017094_univ_lsr_lg.jpg" 
+                },
+                { id: 11, 
+                 name: "Raia-manta", 
+                 scientificName: "Manta birostris", 
+                 description: "Uma das maiores raias do mundo, conhecida pelo nado gracioso.", 
+                 habitat: "Águas tropicais", status: "Vulnerável", 
+                 diet: "Zooplâncton", 
+                 size: "Até 7m de envergadura", 
+                 image: "https://divemag.com/wp-content/uploads/2018/08/RAW_6619.jpg" 
+                },
+                { id: 12, 
+                 name: "Dugongo", 
+                 scientificName: "Dugong dugon", 
+                 description: "Mamífero marinho herbívoro, também chamado de 'vaca-marinha'.", 
+                 habitat: "Águas costeiras quentes", 
+                 status: "Vulnerável", 
+                 diet: "Ervas marinhas", 
+                 size: "Até 3.4 metros", 
+                 image: "https://admin.cnnbrasil.com.br/wp-content/uploads/sites/12/2022/08/220823235939-01-china-dugong-extinct-exlarge-169.jpg?w=766" 
                 }
+            
             ];
+
+             const statusColors = {
+                all: 'bg-cyan-500',
+                'Ameaçado': 'bg-red-500',
+                'Vulnerável': 'bg-yellow-500',
+                'Pouco preocupante': 'bg-sky-500',
+                'Não ameaçado': 'bg-green-500',
+                'Não avaliado': 'bg-gray-500',
+                };
             
             function createBubbles() {
                 const bubbleCount = 44;
