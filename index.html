@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaCensus - Catálogo Oceânico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        #background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(ellipse at bottom, #0d1a26 0%, #050b12 100%);
+            overflow: hidden;
+        }
+
+        @keyframes rise {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-24vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        #background-animation::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 183, 255, 0.2);
+            border-radius: 50%;
+            bottom: -20px;
+            left: 10%;
+            animation: rise 25s infinite linear;
+            animation-delay: 2s;
+            box-shadow: 0 0 10px rgba(0, 183, 255, 0.5), 0 0 20px rgba(0, 183, 255, 0.3);
+        }
+
+        #background-animation::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 225, 255, 0.15);
+            border-radius: 50%;
+            bottom: -30px;
+            left: 50%;
+            animation: rise 20s infinite linear;
+            box-shadow: 0 0 15px rgba(0, 225, 255, 0.4), 0 0 30px rgba(0, 225, 255, 0.2);
+        }
+
+        #background-animation span {
+            position: absolute;
+            width: var(--size);
+            height: var(--size);
+            background: rgba(0, 200, 255, 0.2);
+            border-radius: 50%;
+            bottom: calc(var(--size) * -1);
+            left: var(--left);
+            animation: rise var(--duration) infinite linear;
+            animation-delay: var(--delay);
+            box-shadow: 0 0 12px rgba(0, 200, 255, 0.4), 0 0 25px rgba(0, 200, 255, 0.2);
+        }
+
+        .species-card {
+            background-color: rgba(15, 32, 48, 0.6);
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid rgba(0, 183, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .species-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 225, 255, 0.2), 0 0 15px rgba(0, 183, 255, 0.5);
+        }
+
+        .species-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .species-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #67e8f9; /* cyan-300 */
+        }
+
+        .card-scientific-name {
+            font-size: 1rem;
+            color: #22d3ee; /* cyan-400 */
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        #species-modal.hidden {
+            display: none;
+        }
+
+        #modal-fav-btn.favorited {
+            color: #fb7185; /* rose-400 */
+        }
+        #modal-fav-btn.not-favorited {
+            color: #4b5563; /* gray-600 */
+        }
+        #modal-fav-btn:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <div id="background-animation"></div>
+
+    <header class="bg-black bg-opacity-50 backdrop-blur-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-cyan-400">AquaCensus</h1>
+            <div class="flex items-center space-x-4">
+                <input type="search" id="search-input" placeholder="Buscar espécie..." class="bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300">
+                <button id="favorites-btn" class="text-2xl text-pink-400 hover:text-pink-300 transition duration-300">
+                    &#9733; 
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <div id="species-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        </div>
+    </main>
+
+    <div id="species-modal" class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-gray-800 w-11/12 max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl shadow-cyan-500/20 overflow-hidden flex flex-col md:flex-row">
+            <img id="modal-img" src="" alt="Imagem da Espécie" class="w-full md:w-1/2 h-64 md:h-auto object-cover">
+            <div class="p-8 flex flex-col justify-between overflow-y-auto">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h2 id="modal-title" class="text-4xl font-bold text-cyan-300 mb-2"></h2>
+                        <button id="modal-fav-btn" class="text-3xl transition duration-300">&hearts;</button>
+                    </div>
+                    <p id="modal-scientific-name" class="text-xl text-cyan-500 italic mb-6"></p>
+                    <p id="modal-description" class="text-gray-300 mb-6"></p>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><strong class="text-cyan-400 block">Habitat:</strong> <span id="modal-habitat"></span></div>
+                        <div><strong class="text-cyan-400 block">Status:</strong> <span id="modal-status"></span></div>
+                        <div><strong class="text-cyan-400 block">Dieta:</strong> <span id="modal-diet"></span></div>
+                        <div><strong class="text-cyan-400 block">Tamanho:</strong> <span id="modal-size"></span></div>
+                    </div>
+                </div>
+                <button id="close-modal" class="mt-8 bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 self-center">Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('species-grid');
+            const modal = document.getElementById('species-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const searchInput = document.getElementById('search-input');
+            const favoritesBtn = document.getElementById('favorites-btn');
+            const background = document.getElementById('background-animation');
+            
+            let allSpecies = [];
+            let favorites = JSON.parse(localStorage.getItem('aquaFavorites')) || [];
+            let showingFavorites = false;
+
+            const speciesData = [
+                {
+                    id: 1,
+                    name: "Peixe-palhaço",
+                    scientificName: "Amphiprioninae",
+                    description: "Conhecido por sua simbiose com anêmonas, o peixe-palhaço é um pequeno peixe de cores vibrantes, geralmente laranja, branco e preto. Vivem em águas tropicais e são famosos pelo filme 'Procurando Nemo'.",
+                    habitat: "Recifes de coral, oceanos Índico e Pacífico",
+                    status: "Não ameaçado",
+                    diet: "Onívoro (pequenos crustáceos e algas)",
+                    size: "Até 11 cm",
+                    image: "https://blog.cobasi.com.br/wp-content/uploads/2021/03/peixe-palhaco-capa.png"
+                },
+                {
+                    id: 2,
+                    name: "Tubarão-baleia",
+                    scientificName: "Rhincodon typus",
+                    description: "O maior peixe do mundo, o tubarão-baleia é um gigante gentil que se alimenta por filtração. Apesar de seu tamanho, é dócil e não representa ameaça para os humanos.",
+                    habitat: "Mares tropicais e temperados",
+                    status: "Ameaçado",
+                    diet: "Plâncton e pequenos peixes",
+                    size: "Até 18 metros",
+                    image: "https://i0.wp.com/olharoceanografico.com/wp-content/uploads/2020/09/11.jpg?resize=1332%2C666&ssl=1"
+                },
+                {
+                    id: 3,
+                    name: "Polvo-de-anéis-azuis",
+                    scientificName: "Hapalochlaena",
+                    description: "Pequeno mas extremamente venenoso. Seus anéis azuis iridescentes só aparecem quando o animal se sente ameaçado, servindo como um aviso. Seu veneno pode ser fatal para humanos.",
+                    habitat: "Poças de maré e recifes no Pacífico",
+                    status: "Não avaliado",
+                    diet: "Carnívoro (caranguejos e camarões)",
+                    size: "Até 12 cm",
+                    image: "https://i0.statig.com.br/bancodeimagens/91/l4/7h/91l47hhm3rahzsz832vkro9ct.jpg"
+                },
+                {
+                    id: 4,
+                    name: "Baleia-jubarte",
+                    scientificName: "Megaptera novaeangliae",
+                    description: "Famosa por seus saltos espetaculares e cantos complexos, a baleia-jubarte é um mamífero marinho migratório encontrado em oceanos de todo o mundo.",
+                    habitat: "Oceanos globais",
+                    status: "Pouco preocupante",
+                    diet: "Krill e pequenos peixes",
+                    size: "Até 16 metros",
+                    image: "https://www.iguiecologia.com/wp-content/uploads/2021/05/Baleia-jubarte-1170x697.jpg"
+                },
+                {
+                    id: 5,
+                    name: "Cavalo-marinho",
+                    scientificName: "Hippocampus",
+                    description: "Peixe único com um corpo que se assemelha a um cavalo. O macho carrega os ovos em uma bolsa incubadora, uma raridade no reino animal.",
+                    habitat: "Águas costeiras temperadas e tropicais",
+                    status: "Vulnerável",
+                    diet: "Pequenos crustáceos",
+                    size: "Até 35 cm",
+                    image: "https://recreio.com.br/media/uploads/feedsync/cavalo-marinho-confira-curiosidades-e-como-cuidar-desse-animal-147.jpg"
+                },
+                {
+                    id: 6,
+                    name: "Água-viva-juba-de-leão",
+                    scientificName: "Cyanea capillata",
+                    description: "Uma das maiores espécies de água-viva. Seus tentáculos finos e longos se assemelham a uma juba de leão e podem causar queimaduras dolorosas.",
+                    habitat: "Águas frias dos oceanos Ártico, Atlântico e Pacífico",
+                    status: "Não avaliado",
+                    diet: "Peixes, crustáceos e outras águas-vivas",
+                    size: "Diâmetro de até 2 metros",
+                    image: "https://farm8.staticflickr.com/7256/7570746886_1353667e13_z.jpg"
+                },
+                 {
+                    id: 7,
+                    name: "Tartaruga-de-couro",
+                    scientificName: "Dermochelys coriacea",
+                    description: "A maior de todas as tartarugas marinhas, distinta por sua carapaça de couro em vez de uma concha óssea. É uma grande migradora e mergulhadora de profundidade.",
+                    habitat: "Oceanos tropicais e temperados",
+                    status: "Vulnerável",
+                    diet: "Águas-vivas",
+                    size: "Até 2.2 metros de comprimento",
+                    image: "https://midias.agazeta.com.br/2021/03/09/1920x1080/a-tartaruga-de-couro-dermochelys-coriacea-tambem-e-conhecida-como-tartaruga-gigante-434515.jpg"
+                },
+                {
+                    id: 8,
+                    name: "Coral-cérebro",
+                    scientificName: "Colpophyllia natans",
+                    description: "Forma colônias maciças que se assemelham a um cérebro humano. É um construtor fundamental de recifes, fornecendo habitat para inúmeras outras espécies.",
+                    habitat: "Recifes de coral no Caribe e Atlântico",
+                    status: "Pouco preocupante",
+                    diet: "Zooplâncton (capturado por pólipos)",
+                    size: "Colônias de até 2 metros de diâmetro",
+                    image: "https://abuddive.com.br/wp-content/uploads/2022/06/Diploria-labyrinthiformis.jpeg"
+                }
+            ];
+            
+            function createBubbles() {
+                const bubbleCount = 44;
+                for (let i = 0; i < bubbleCount; i++) {
+                    const bubble = document.createElement('span');
+                    const size = `${Math.random() * 45 + 10}px`;
+                    bubble.style.setProperty('--size', size);
+                    bubble.style.setProperty('--left', `${Math.random() * 100}%`);
+                    bubble.style.setProperty('--duration', `${Math.random() * 15 + 10}s`);
+                    bubble.style.setProperty('--delay', `${Math.random() * 5}s`);
+                    background.appendChild(bubble);
+                }
+            }
+
+
+            function createSpeciesCard(species) {
+                const card = document.createElement('div');
+                card.className = 'species-card';
+                card.innerHTML = `
+                    <img src="${species.image}" alt="${species.name}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/0f2030/67e8f9?text=${species.name.replace(' ', '+')}';">
+                    <div class="card-content">
+                        <h3 class="card-title">${species.name}</h3>
+                        <p class="card-scientific-name">${species.scientificName}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => openModal(species));
+                return card;
+            }
+
+            function renderSpecies(speciesList) {
+                grid.innerHTML = '';
+                speciesList.forEach(species => {
+                    grid.appendChild(createSpeciesCard(species));
+                });
+            }
+
+            function openModal(species) {
+                document.getElementById('modal-title').textContent = species.name;
+                document.getElementById('modal-scientific-name').textContent = species.scientificName;
+                document.getElementById('modal-description').textContent = species.description;
+                document.getElementById('modal-habitat').textContent = species.habitat;
+                document.getElementById('modal-status').textContent = species.status;
+                document.getElementById('modal-diet').textContent = species.diet;
+                document.getElementById('modal-size').textContent = species.size;
+                document.getElementById('modal-img').src = species.image;
+                document.getElementById('modal-img').alt = species.name;
+                
+                const modalFavBtn = document.getElementById('modal-fav-btn');
+                updateFavoriteButton(modalFavBtn, species.id);
+                
+                modalFavBtn.onclick = () => {
+                    toggleFavorite(species.id);
+                    updateFavoriteButton(modalFavBtn, species.id);
+                };
+                
+                modal.classList.remove('hidden');
+            }
+            
+            function updateFavoriteButton(button, speciesId) {
+                if (favorites.includes(speciesId)) {
+                    button.classList.add('favorited');
+                    button.classList.remove('not-favorited');
+                } else {
+                    button.classList.add('not-favorited');
+                    button.classList.remove('favorited');
+                }
+            }
+            
+            function toggleFavorite(speciesId) {
+                const index = favorites.indexOf(speciesId);
+                if (index > -1) {
+                    favorites.splice(index, 1); 
+                } else {
+                    favorites.push(speciesId); 
+                }
+                localStorage.setItem('aquaFavorites', JSON.stringify(favorites));
+                
+                if (showingFavorites) {
+                    filterAndShowFavorites();
+                }
+            }
+            
+            function closeModal() {
+                modal.classList.add('hidden');
+            }
+
+            function filterBySearch(searchTerm) {
+                const lowerCaseTerm = searchTerm.toLowerCase();
+                const filtered = allSpecies.filter(s => 
+                    s.name.toLowerCase().includes(lowerCaseTerm) || 
+                    s.scientificName.toLowerCase().includes(lowerCaseTerm)
+                );
+                renderSpecies(filtered);
+            }
+            
+            function filterAndShowFavorites() {
+                 const favoriteSpecies = allSpecies.filter(s => favorites.includes(s.id));
+                 renderSpecies(favoriteSpecies);
+            }
+
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+            searchInput.addEventListener('input', (e) => {
+                showingFavorites = false; 
+                favoritesBtn.classList.remove('text-yellow-400');
+                filterBySearch(e.target.value);
+            });
+            
+            favoritesBtn.addEventListener('click', () => {
+                showingFavorites = !showingFavorites;
+                if (showingFavorites) {
+                    favoritesBtn.classList.add('text-yellow-400');
+                    filterAndShowFavorites();
+                } else {
+                    favoritesBtn.classList.remove('text-yellow-400');
+                    renderSpecies(allSpecies);
+                }
+            });
+
+            // Inicialização
+            function init() {
+                allSpecies = speciesData; 
+                renderSpecies(allSpecies);
+                createBubbles();
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
