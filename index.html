@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         #background-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at bottom, #0d1a26 0%, #050b12 100%); overflow: hidden; }
-        @keyframes rise { 0% { transform: translateY(100vh) scale(0); opacity: 0.5; } 100% { transform: translateY(-24vh) scale(1); opacity: 0; } }
+        @keyframes rise { 0% { transform: translateY(100vh) scale(0); opacity: 0.5; } 100% { transform: translateY(-45vh) scale(1); opacity: 0; } }
         #background-animation span { position: absolute; border-radius: 50%; animation: rise linear infinite; width: var(--size); height: var(--size); background: rgba(0, 200, 255, 0.2); bottom: calc(var(--size) * -1); left: var(--left); animation-duration: var(--duration); animation-delay: var(--delay); box-shadow: 0 0 12px rgba(0, 200, 255, 0.4), 0 0 25px rgba(0, 200, 255, 0.2); }
         .species-card { position: relative; background-color: rgba(15, 32, 48, 0.6); border-radius: 1rem; overflow: hidden; border: 1px solid rgba(0, 183, 255, 0.2); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; backdrop-filter: blur(5px); }
         .species-card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 20px 40px rgba(0, 225, 255, 0.2), 0 0 15px rgba(0, 183, 255, 0.5); }
