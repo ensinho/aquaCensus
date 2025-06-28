@@ -1,224 +1,318 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaCensus - Catálogo Oceânico</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.69 7.44a6.973 6.973 0 0 0-1.69 4.56c0 1.747 .64 3.345 1.699 4.571m-14.699-2.07c7.715 8.647 14.75 10.265 20 2.498-5.25-7.761-12.285-6.142-20 2.504M18 11v.01m-6.5-.5c-.667 1-.667 2 0 3' fill='none' stroke='%2322d3ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>AquaCensus - Mergulhe no Oceano</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16.69 7.44a6.973 6.973 0 0 0-1.69 4.56c0 1.747 .64 3.345 1.699 4.571'/%3E%3Cpath d='M2 9.504c7.715 8.647 14.75 10.265 20 2.498c-5.25 -7.761 -12.285 -6.142 -20 2.504'/%3E%3Cpath d='M18 11v.01'/%3E%3Cpath d='M11.5 10.5c-.667 1-.667 2 0 3'/%3E%3C/svg%3E">    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Poppins', sans-serif; }
-        #background-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at bottom, #0d1a26 0%, #050b12 100%); overflow: hidden; }
-        @keyframes rise { 0% { transform: translateY(100vh) scale(0); opacity: 0.5; } 100% { transform: translateY(-45vh) scale(1); opacity: 0; } }
-        #background-animation span { position: absolute; border-radius: 50%; animation: rise linear infinite; width: var(--size); height: var(--size); background: rgba(0, 200, 255, 0.2); bottom: calc(var(--size) * -1); left: var(--left); animation-duration: var(--duration); animation-delay: var(--delay); box-shadow: 0 0 12px rgba(0, 200, 255, 0.4), 0 0 25px rgba(0, 200, 255, 0.2); }
-        .species-card { position: relative; background-color: rgba(15, 32, 48, 0.6); border-radius: 1rem; overflow: hidden; border: 1px solid rgba(0, 183, 255, 0.2); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; backdrop-filter: blur(5px); }
-        .species-card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 20px 40px rgba(0, 225, 255, 0.2), 0 0 15px rgba(0, 183, 255, 0.5); }
-        .species-card img { width: 100%; height: 200px; object-fit: cover; transition: transform 0.3s ease; }
-        .species-card:hover img { transform: scale(1.1); }
+        html { font-family: 'Inter', sans-serif; }
+        .hero-bg { background-image: url('https://i.natgeofe.com/k/15d5680f-a0b6-4a0b-b369-f258493a7362/OG_Whale-Shark_KIDS_0622_16x9.jpg'); }
+        .animated-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .animated-section.is-visible { opacity: 1; transform: translateY(0); }
+        .header-scrolled { background-color: rgba(10, 25, 47, 0.7); backdrop-filter: blur(12px); border-bottom-color: rgba(56, 189, 248, 0.2); }
+        body.modal-open { overflow: hidden; }
         .modal.hidden { display: none; }
-        .card-fav-btn, #modal-fav-btn { transition: color 0.2s, transform 0.2s; }
-        .card-fav-btn.favorited, #modal-fav-btn.favorited { color: #fb7185; transform: scale(1.1); }
-        .card-fav-btn { position: absolute; top: 1rem; right: 1rem; z-index: 10; font-size: 1.5rem; color: rgba(255, 255, 255, 0.7); text-shadow: 0 0 8px black; }
-        .filter-container { position: relative; display: inline-flex; background-color: rgba(30, 41, 59, 0.7); border-radius: 9999px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+        .card-fav-btn.favorited { color: #fb7185; transform: scale(1.1); }
+        .filter-container { scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
-        .filter-btn { background-color: transparent; color: #cbd5e1; border: none; padding: 8px 16px; cursor: pointer; border-radius: 9999px; transition: color 0.3s ease; position: relative; z-index: 10; white-space: nowrap; }
-        .filter-btn.active { color: white; }
-        .filter-indicator { position: absolute; height: calc(100% - 8px); top: 4px; left: 0; border-radius: 9999px; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); z-index: 5; }
+        
+        .species-card {
+            background-color: #1e293b;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .species-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 25px rgba(56, 189, 248, 0.2);
+        }
+        .species-card .image-container {
+            position: relative;
+            height: 240px;
+        }
+        .species-card .image-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(30, 41, 59, 0.85) 0%, rgba(30, 41, 59, 0) 50%);
+        }
+        .species-card .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.25rem;
+            z-index: 2;
+        }
+        .filter-btn svg {
+            color: #64748b; /* slate-500 */
+            transition: all 0.3s ease-in-out;
+        }
+        .filter-btn:hover svg {
+            color: #cbd5e1; /* slate-300 */
+        }
+        .filter-btn.active svg {
+            color: var(--active-filter-color, #38bdf8);
+            filter: drop-shadow(0 0 6px var(--active-filter-color, #38bdf8));
+            transform: scale(1.1);
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
+<body class="bg-slate-900 text-slate-300">
 
-    <div id="background-animation"></div>
-
-    <header class="bg-black bg-opacity-50 backdrop-blur-md sticky top-0 z-50">
-        <nav class="container mx-auto px-4 sm:px-6 py-4 flex flex-col items-center gap-4">
-            <div class="flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16.69 7.44a6.973 6.973 0 0 0-1.69 4.56c0 1.747 .64 3.345 1.699 4.571"/><path d="M2 9.504c7.715 8.647 14.75 10.265 20 2.498c-5.25 -7.761 -12.285 -6.142 -20 2.504"/><path d="M18 11v.01"/><path d="M11.5 10.5c-.667 1-.667 2 0 3"/></svg>
-                <h1 class="text-3xl font-bold text-cyan-400">AquaCensus</h1>
-            </div>
-            <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
-                <div id="status-filter-container" class="filter-container"><span id="filter-indicator" class="filter-indicator"></span><button class="filter-btn" data-status="all">Todos</button><button class="filter-btn" data-status="Ameaçado">Ameaçado</button><button class="filter-btn" data-status="Vulnerável">Vulnerável</button><button class="filter-btn" data-status="Pouco preocupante">Menor Risco</button></div>
-                <div class="flex items-center space-x-4"><input type="search" id="search-input" placeholder="Buscar..." class="w-40 md:w-auto bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-300"><button id="add-species-btn" class="bg-cyan-500 hover:bg-cyan-600 rounded-full p-2.5 transition duration-300"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button><button id="favorites-btn" class="text-4xl text-pink-400 hover:text-pink-300 transition duration-300">&hearts;</button></div>
-            </div>
+    <header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.69 7.44a6.973 6.973 0 0 0-1.69 4.56c0 1.747 .64 3.345 1.699 4.571"/><path d="M2 9.504c7.715 8.647 14.75 10.265 20 2.498c-5.25 -7.761 -12.285 -6.142 -20 2.504"/><path d="M18 11v.01"/><path d="M11.5 10.5c-.667 1-.667 2 0 3"/></svg>
+                <span class="text-xl font-bold text-white">AquaCensus</span>
+            </a>
+            <a href="#catalog" id="explore-btn" class="hidden md:inline bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-5 rounded-full transition-colors">Ver Espécies</a>
         </nav>
     </header>
 
-    <main class="container mx-auto px-6 py-12">
-        <div id="species-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"></div>
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="h-screen w-full flex items-center justify-center relative hero-bg bg-cover bg-center">
+            <div class="absolute inset-0 bg-black/60"></div>
+            <div class="relative text-center text-white px-4 z-10 animated-section is-visible">
+                <h1 class="text-5xl md:text-8xl font-extrabold tracking-tight">Oceano.</h1>
+                <p class="mt-4 text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto">Onde a curiosidade encontra a conservação. Explore o desconhecido.</p>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 md:py-32 bg-slate-900 animated-section">
+            <div class="container mx-auto px-6 text-center max-w-4xl">
+                <h2 class="text-3xl md:text-5xl font-bold text-sky-400">Nossa Missão</h2>
+                <p class="mt-6 text-lg md:text-xl text-slate-400 leading-relaxed">
+                    O AquaCensus é uma iniciativa para catalogar a diversidade da vida marinha e conscientizar sobre a importância da conservação. Cada espécie aqui registrada é um tesouro que devemos proteger. Junte-se a nós nesta jornada para garantir que a beleza dos oceanos perdure por gerações.
+                </p>
+            </div>
+        </section>
+
+        <!-- Catalog Section -->
+        <section id="catalog" class="py-20 md:py-28 bg-slate-800/50 animated-section">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold text-white">Catálogo de Espécies</h2>
+                    <p class="mt-4 text-lg text-slate-400">Filtre, pesquise e descubra as maravilhas do oceano.</p>
+                </div>
+                <div class="sticky top-[80px] z-30 py-4 flex flex-col md:flex-row items-center justify-center gap-6 bg-slate-800/50 backdrop-blur-md rounded-xl mb-12">
+                     <div id="status-filter-container" class="filter-container p-2 bg-slate-700/50 rounded-full flex items-center gap-2">
+                        <button class="filter-btn p-2.5" data-status="all" title="Todos"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" /></svg></button>
+                        <button class="filter-btn p-2.5" data-status="Ameaçado" title="Ameaçado"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></button>
+                        <button class="filter-btn p-2.5" data-status="Vulnerável" title="Vulnerável"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+                        <button class="filter-btn p-2.5" data-status="Pouco preocupante" title="Pouco Preocupante"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+                    </div>
+                    <div class="flex items-center space-x-4"><input type="search" id="search-input" placeholder="Buscar..." class="w-40 md:w-auto bg-slate-700 border border-slate-600 rounded-full px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"><button id="add-species-btn" class="bg-sky-600 hover:bg-sky-700 rounded-full p-2.5 transition duration-300"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button><button id="favorites-btn" class="text-4xl text-pink-400 hover:text-pink-300 transition-transform hover:scale-110">&hearts;</button></div>
+                </div>
+                <div id="species-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+            </div>
+        </section>
     </main>
 
-    <div id="details-modal" class="modal fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-gray-800 w-11/12 max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl shadow-cyan-500/20 overflow-hidden flex flex-col md:flex-row">
-            <img id="modal-img" src="" alt="Imagem da Espécie" class="w-full md:w-1/2 h-64 md:h-auto object-cover">
-            <div class="p-8 flex flex-col justify-between overflow-y-auto"><h2 id="modal-title" class="text-4xl font-bold text-cyan-300 mb-2"></h2><p id="modal-scientific-name" class="text-xl text-cyan-500 italic mb-6"></p><p id="modal-description" class="text-gray-300 mb-6"></p><div class="grid grid-cols-2 gap-4 text-sm"><div><strong class="text-cyan-400 block">Habitat:</strong> <span id="modal-habitat"></span></div><div><strong class="text-cyan-400 block">Status:</strong> <span id="modal-status"></span></div><div><strong class="text-cyan-400 block">Dieta:</strong> <span id="modal-diet"></span></div><div><strong class="text-cyan-400 block">Tamanho:</strong> <span id="modal-size"></span></div></div><button id="close-details-modal" class="mt-8 bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 self-center">Fechar</button></div>
+    <footer class="bg-slate-900 border-t border-sky-400/10 py-12 animated-section">
+        <div class="container mx-auto px-6 text-center text-slate-400">
+            <p>&copy; 2025 AquaCensus. Desenvolvido com paixão pelos oceanos.</p>
+            <p class="text-base mt-2">
+                Uma criação de
+                <a 
+                    href="https://www.linkedin.com/in/enzoesmeraldo/" 
+                    class="underline text-white px-1 rounded-sm" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                >
+                Enzo Esmeraldo
+                </a>
+                </p>
         </div>
-    </div>
-    
-    <div id="add-modal" class="modal fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-gray-800 w-11/12 max-w-lg rounded-2xl shadow-2xl shadow-cyan-500/20 max-h-[90vh] overflow-y-auto">
+    </footer>
+
+    <!-- Modals -->
+    <div id="details-modal" class="modal fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4 transition-opacity duration-300"></div>
+    <div id="add-modal" class="modal fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4 transition-opacity duration-300">
+        <div class="bg-slate-800 w-11/12 max-w-lg rounded-2xl shadow-2xl shadow-sky-500/10 max-h-[90vh] overflow-y-auto">
             <form id="add-species-form" class="p-8 space-y-4">
-                <h2 class="text-3xl font-bold text-cyan-300 mb-6 text-center">Adicionar Nova Espécie</h2>
-                <input required name="name" type="text" placeholder="Nome da Espécie" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                <input required name="scientificName" type="text" placeholder="Nome Científico" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                <textarea required name="description" placeholder="Descrição" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500" rows="3"></textarea>
-                <input required name="image" type="url" placeholder="URL da Imagem" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <h2 class="text-3xl font-bold text-sky-300 mb-6 text-center">Adicionar Nova Espécie</h2>
+                <input required name="name" type="text" placeholder="Nome da Espécie" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <input required name="scientificName" type="text" placeholder="Nome Científico" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <textarea required name="description" placeholder="Descrição" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500" rows="3"></textarea>
+                <input required name="image" type="url" placeholder="URL da Imagem" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input required name="habitat" type="text" placeholder="Habitat" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                    <select required name="status" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"><option value="" disabled selected>Status de Conservação</option><option value="Não ameaçado">Não ameaçado</option><option value="Pouco preocupante">Pouco preocupante</option><option value="Vulnerável">Vulnerável</option><option value="Ameaçado">Ameaçado</option></select>
-                    <input required name="diet" type="text" placeholder="Dieta" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                    <input required name="size" type="text" placeholder="Tamanho" class="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    <input required name="habitat" type="text" placeholder="Habitat" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    <select required name="status" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-sky-500"><option value="" disabled selected>Status de Conservação</option><option value="Não ameaçado">Não ameaçado</option><option value="Pouco preocupante">Pouco preocupante</option><option value="Vulnerável">Vulnerável</option><option value="Ameaçado">Ameaçado</option></select>
+                    <input required name="diet" type="text" placeholder="Dieta" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    <input required name="size" type="text" placeholder="Tamanho" class="w-full bg-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
-                <div class="flex justify-end gap-4 pt-4"><button type="button" id="close-add-modal" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition">Cancelar</button><button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg transition">Adicionar</button></div>
+                <div class="flex justify-end gap-4 pt-4"><button type="button" id="close-add-modal" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-6 rounded-lg transition">Cancelar</button><button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-6 rounded-lg transition">Adicionar</button></div>
             </form>
         </div>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+             const initialSpecies = [
+                { id: 1, name: "Peixe-palhaço", scientificName: "Amphiprioninae", description: "Famoso pela simbiose com anêmonas, vive em águas tropicais.", habitat: "Recifes de coral", status: "Não ameaçado", diet: "Onívoro", size: "Até 11 cm", image: "https://blog.cobasi.com.br/wp-content/uploads/2021/03/peixe-palhaco-capa.png" },
+                { id: 2, name: "Tubarão-baleia", scientificName: "Rhincodon typus", description: "O maior peixe do mundo, é um gigante gentil que se alimenta por filtração.", habitat: "Mares tropicais", status: "Ameaçado", diet: "Plâncton", size: "Até 18 metros", image: "https://i0.wp.com/olharoceanografico.com/wp-content/uploads/2020/09/11.jpg?resize=1332%2C666&ssl=1" },
+                { id: 3, name: "Polvo-de-anéis-azuis", scientificName: "Hapalochlaena", description: "Pequeno mas extremamente venenoso. Seus anéis azuis brilham como aviso.", habitat: "Poças de maré no Pacífico", status: "Não avaliado", diet: "Carnívoro", size: "Até 12 cm", image: "https://i0.statig.com.br/bancodeimagens/91/l4/7h/91l47hhm3rahzsz832vkro9ct.jpg" },
+                { id: 4, name: "Baleia-jubarte", scientificName: "Megaptera novaeangliae", description: "Famosa por seus saltos espetaculares e cantos complexos.", habitat: "Oceanos globais", status: "Pouco preocupante", diet: "Krill", size: "Até 16 metros", image: "https://www.iguiecologia.com/wp-content/uploads/2021/05/Baleia-jubarte-1170x697.jpg" },
+                { id: 5, name: "Água-viva-juba-de-leão", scientificName: "Cyanea capillata", description: "Uma das maiores espécies de água-viva, com longos tentáculos.", habitat: "Águas frias do norte", status: "Não avaliado", diet: "Peixes", size: "Até 2m de diâmetro", image: "https://farm8.staticflickr.com/7256/7570746886_1353667e13_z.jpg" },
+                { id: 6, name: "Tartaruga-de-couro", scientificName: "Dermochelys coriacea", description: "A maior tartaruga marinha, com carapaça de couro em vez de óssea.", habitat: "Oceanos tropicais", status: "Vulnerável", diet: "Águas-vivas", size: "Até 2.2 metros", image: "https://midias.agazeta.com.br/2021/03/09/1920x1080/a-tartaruga-de-couro-dermochelys-coriacea-tambem-e-conhecida-como-tartaruga-gigante-434515.jpg" },
+                { id: 7, name: "Coral-cérebro", scientificName: "Colpophyllia natans", description: "Forma colônias maciças que se assemelham a um cérebro humano.", habitat: "Recifes de coral", status: "Pouco preocupante", diet: "Zooplâncton", size: "Colônias de até 2m", image: "https://abuddive.com.br/wp-content/uploads/2022/06/Diploria-labyrinthiformis.jpeg" },
+                { id: 8, name: "Peixe-leão", scientificName: "Pterois volitans", description: "Espécie invasora com espinhos venenosos e coloração listrada.", habitat: "Invasor no Atlântico", status: "Pouco preocupante", diet: "Carnívoro", size: "Até 47 cm", image: "https://assojuris.org.br/wp-content/uploads/2022/08/Sem-titulo-22.jpg" },
+                { id: 9, name: "Lontra-marinha", scientificName: "Enhydra lutris", description: "Mamífero que flutua de costas e usa pedras para abrir conchas.", habitat: "Costas do Pacífico Norte", status: "Ameaçado", diet: "Invertebrados", size: "Até 1.5 metros", image: "https://cms-imgp.jw-cdn.org/img/p/102017094/univ/art/102017094_univ_lsr_lg.jpg" },
+                { id: 10, name: "Raia-manta", scientificName: "Manta birostris", description: "Uma das maiores raias do mundo, conhecida pelo nado gracioso.", habitat: "Águas tropicais", status: "Vulnerável", diet: "Zooplâncton", size: "Até 7m de envergadura", image: "https://divemag.com/wp-content/uploads/2018/08/RAW_6619.jpg" },
+                { id: 11, name: "Dugongo", scientificName: "Dugong dugon", description: "Mamífero marinho herbívoro, também chamado de 'vaca-marinha'.", habitat: "Águas costeiras quentes", status: "Vulnerável", diet: "Ervas marinhas", size: "Até 3.4 metros", image: "https://admin.cnnbrasil.com.br/wp-content/uploads/sites/12/2022/08/220823235939-01-china-dugong-extinct-exlarge-169.jpg?w=766" }
+            ];
+
             const grid = document.getElementById('species-grid');
             const detailsModal = document.getElementById('details-modal');
             const addModal = document.getElementById('add-modal');
-            const closeDetailsModalBtn = document.getElementById('close-details-modal');
             const addSpeciesBtn = document.getElementById('add-species-btn');
             const closeAddModalBtn = document.getElementById('close-add-modal');
             const addSpeciesForm = document.getElementById('add-species-form');
             const searchInput = document.getElementById('search-input');
             const favoritesBtn = document.getElementById('favorites-btn');
-            const background = document.getElementById('background-animation');
             const statusFilterContainer = document.getElementById('status-filter-container');
-            const filterIndicator = document.getElementById('filter-indicator');
             const filterButtons = document.querySelectorAll('.filter-btn');
-            
-            const initialSpecies = [
-                { id: 1, name: "Peixe-palhaço", scientificName: "Amphiprioninae", description: "Famoso pela simbiose com anêmonas, vive em águas tropicais.", habitat: "Recifes de coral", status: "Não ameaçado", diet: "Onívoro", size: "Até 11 cm", image: "https://blog.cobasi.com.br/wp-content/uploads/2021/03/peixe-palhaco-capa.png" },
-                { id: 2, name: "Tubarão-baleia", scientificName: "Rhincodon typus", description: "O maior peixe do mundo, é um gigante gentil que se alimenta por filtração.", habitat: "Mares tropicais", status: "Ameaçado", diet: "Plâncton", size: "Até 18 metros", image: "https://i0.wp.com/olharoceanografico.com/wp-content/uploads/2020/09/11.jpg?resize=1332%2C666&ssl=1" },
-                { id: 3, name: "Polvo-de-anéis-azuis", scientificName: "Hapalochlaena", description: "Pequeno mas extremamente venenoso. Seus anéis azuis brilham como aviso.", habitat: "Poças de maré no Pacífico", status: "Não avaliado", diet: "Carnívoro", size: "Até 12 cm", image: "https://i0.statig.com.br/bancodeimagens/91/l4/7h/91l47hhm3rahzsz832vkro9ct.jpg" },
-                { id: 4, name: "Baleia-jubarte", scientificName: "Megaptera novaeangliae", description: "Famosa por seus saltos espetaculares e cantos complexos.", habitat: "Oceanos globais", status: "Pouco preocupante", diet: "Krill", size: "Até 16 metros", image: "https://www.iguiecologia.com/wp-content/uploads/2021/05/Baleia-jubarte-1170x697.jpg" },
-                { id: 5, name: "Cavalo-marinho", scientificName: "Hippocampus", description: "Peixe único onde o macho carrega os ovos em uma bolsa incubadora.", habitat: "Águas costeiras", status: "Vulnerável", diet: "Pequenos crustáceos", size: "Até 35 cm", image: "https://recreio.com.br/media/uploads/feedsync/cavalo-marinho-confira-curiosidades-e-como-cuidar-desse-animal-147.jpg" },
-                { id: 6, name: "Água-viva-juba-de-leão", scientificName: "Cyanea capillata", description: "Uma das maiores espécies de água-viva, com longos tentáculos.", habitat: "Águas frias do norte", status: "Não avaliado", diet: "Peixes", size: "Até 2m de diâmetro", image: "https://farm8.staticflickr.com/7256/7570746886_1353667e13_z.jpg" },
-                { id: 7, name: "Tartaruga-de-couro", scientificName: "Dermochelys coriacea", description: "A maior tartaruga marinha, com carapaça de couro em vez de óssea.", habitat: "Oceanos tropicais", status: "Vulnerável", diet: "Águas-vivas", size: "Até 2.2 metros", image: "https://midias.agazeta.com.br/2021/03/09/1920x1080/a-tartaruga-de-couro-dermochelys-coriacea-tambem-e-conhecida-como-tartaruga-gigante-434515.jpg" },
-                { id: 8, name: "Coral-cérebro", scientificName: "Colpophyllia natans", description: "Forma colônias maciças que se assemelham a um cérebro humano.", habitat: "Recifes de coral", status: "Pouco preocupante", diet: "Zooplâncton", size: "Colônias de até 2m", image: "https://abuddive.com.br/wp-content/uploads/2022/06/Diploria-labyrinthiformis.jpeg" },
-                { id: 9, name: "Peixe-leão", scientificName: "Pterois volitans", description: "Espécie invasora com espinhos venenosos e coloração listrada.", habitat: "Invasor no Atlântico", status: "Pouco preocupante", diet: "Carnívoro", size: "Até 47 cm", image: "https://assojuris.org.br/wp-content/uploads/2022/08/Sem-titulo-22.jpg" },
-                { id: 10, name: "Lontra-marinha", scientificName: "Enhydra lutris", description: "Mamífero que flutua de costas e usa pedras para abrir conchas.", habitat: "Costas do Pacífico Norte", status: "Ameaçado", diet: "Invertebrados", size: "Até 1.5 metros", image: "https://cms-imgp.jw-cdn.org/img/p/102017094/univ/art/102017094_univ_lsr_lg.jpg" },
-                { id: 11, name: "Raia-manta", scientificName: "Manta birostris", description: "Uma das maiores raias do mundo, conhecida pelo nado gracioso.", habitat: "Águas tropicais", status: "Vulnerável", diet: "Zooplâncton", size: "Até 7m de envergadura", image: "https://divemag.com/wp-content/uploads/2018/08/RAW_6619.jpg" },
-                { id: 12, name: "Dugongo", scientificName: "Dugong dugon", description: "Mamífero marinho herbívoro, também chamado de 'vaca-marinha'.", habitat: "Águas costeiras quentes", status: "Vulnerável", diet: "Ervas marinhas", size: "Até 3.4 metros", image: "https://admin.cnnbrasil.com.br/wp-content/uploads/sites/12/2022/08/220823235939-01-china-dugong-extinct-exlarge-169.jpg?w=766" }
-            ];
+            const mainHeader = document.getElementById('main-header');
+            const exploreBtn = document.getElementById('explore-btn');
 
             let allSpecies = [];
             let favorites = JSON.parse(localStorage.getItem('aquaFavorites')) || [];
             let currentSearchTerm = '';
             let currentStatusFilter = 'all';
             let showingFavorites = false;
-            const statusColors = { all: 'bg-cyan-500', 'Ameaçado': 'bg-red-500', 'Vulnerável': 'bg-yellow-500', 'Pouco preocupante': 'bg-sky-500', 'Não ameaçado': 'bg-green-500', 'Não avaliado': 'bg-gray-500' };
+            const statusColors = { 
+                all: '#38bdf8',               // sky-400
+                'Ameaçado': '#f87171',       // red-400
+                'Vulnerável': '#fb923c',     // orange-400
+                'Pouco preocupante': '#60a5fa' // blue-400
+            };
 
-            function setScrollLock(isLocked) {
-                document.body.style.overflow = isLocked ? 'hidden' : '';
-            }
+            const setScrollLock = (isLocked) => document.body.classList.toggle('modal-open', isLocked);
 
-            function openModal(modalElement) {
+            const openModal = (modalElement) => {
                 modalElement.classList.remove('hidden');
+                setTimeout(() => modalElement.style.opacity = 1, 10);
                 setScrollLock(true);
-            }
-            
-            function closeModal(modalElement) {
-                modalElement.classList.add('hidden');
-                setScrollLock(false);
-            }
+            };
 
-            function loadSpecies() {
+            const closeModal = (modalElement) => {
+                modalElement.style.opacity = 0;
+                setTimeout(() => {
+                    modalElement.classList.add('hidden');
+                    setScrollLock(false);
+                }, 300);
+            };
+
+            const loadSpecies = () => {
                 const userSpecies = JSON.parse(localStorage.getItem('userSpecies')) || [];
-                allSpecies = [...initialSpecies, ...userSpecies];
-            }
+                allSpecies = [...initialSpecies, ...userSpecies].filter(s => s.status !== 'Não avaliado');
+            };
 
-            function createSpeciesCard(species) {
+            const createSpeciesCard = (species) => {
                 const card = document.createElement('div');
-                card.className = 'species-card';
+                card.className = 'species-card animated-section';
                 card.dataset.id = species.id;
                 const isFavorited = favorites.includes(species.id);
                 card.innerHTML = `
-                    <button class="card-fav-btn ${isFavorited ? 'favorited' : ''}">&hearts;</button>
-                    <div class="card-body">
-                        <img loading="lazy" src="${species.image}" alt="${species.name}" onerror="this.onerror=null;this.src='https.placehold.co/600x400/0f2030/67e8f9?text=${species.name.replace(' ', '+')}';">
-                        <div class="p-4"><h3 class="text-xl font-bold text-cyan-300">${species.name}</h3><p class="text-sm text-cyan-500 italic">${species.scientificName}</p></div>
-                    </div>
-                `;
+                    <div class="image-container">
+                        <img loading="lazy" class="absolute h-full w-full object-cover" src="${species.image}" alt="${species.name}" onerror="this.onerror=null;this.src='https.placehold.co/600x400/1e293b/94a3b8?text=${species.name.replace(' ', '+')}';">
+                        <button class="card-fav-btn ${isFavorited ? 'favorited' : ''} text-2xl absolute top-4 right-4 z-10">&hearts;</button>
+                        <div class="card-content">
+                            <h3 class="text-xl font-bold text-white">${species.name}</h3>
+                            <p class="text-sm text-sky-300 italic">${species.scientificName}</p>
+                        </div>
+                    </div>`;
                 card.querySelector('.card-fav-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
                     toggleFavorite(species.id);
                 });
-                card.querySelector('.card-body').addEventListener('click', () => {
-                    document.getElementById('modal-title').textContent = species.name;
-                    document.getElementById('modal-scientific-name').textContent = species.scientificName;
-                    document.getElementById('modal-description').textContent = species.description;
-                    document.getElementById('modal-habitat').textContent = species.habitat;
-                    document.getElementById('modal-status').textContent = species.status;
-                    document.getElementById('modal-diet').textContent = species.diet;
-                    document.getElementById('modal-size').textContent = species.size;
-                    document.getElementById('modal-img').src = species.image;
+                card.addEventListener('click', () => {
+                    detailsModal.innerHTML = `
+                        <div class="bg-slate-800 w-11/12 max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl shadow-sky-500/10 overflow-hidden flex flex-col md:flex-row">
+                            <img src="${species.image}" alt="${species.name}" class="w-full md:w-1/2 h-64 md:h-auto object-cover">
+                            <div class="p-8 flex flex-col justify-between overflow-y-auto"><div>
+                                <h2 class="text-4xl font-bold text-white mb-2">${species.name}</h2>
+                                <p class="text-xl text-sky-400 italic mb-6">${species.scientificName}</p>
+                                <p class="text-slate-300 mb-6">${species.description}</p>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div><strong class="text-sky-400 block">Habitat:</strong> <span class="text-slate-200">${species.habitat}</span></div>
+                                    <div><strong class="text-sky-400 block">Status:</strong> <span class="text-slate-200">${species.status}</span></div>
+                                    <div><strong class="text-sky-400 block">Dieta:</strong> <span class="text-slate-200">${species.diet}</span></div>
+                                    <div><strong class="text-sky-400 block">Tamanho:</strong> <span class="text-slate-200">${species.size}</span></div>
+                                </div></div>
+                                <button id="close-details-modal" class="mt-8 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg transition self-center">Fechar</button>
+                            </div>
+                        </div>`;
                     openModal(detailsModal);
+                    detailsModal.querySelector('#close-details-modal').addEventListener('click', () => closeModal(detailsModal));
                 });
                 return card;
-            }
+            };
 
-            function renderSpecies(speciesList) {
+            const renderSpecies = (speciesList) => {
                 grid.innerHTML = '';
                 speciesList.forEach(species => grid.appendChild(createSpeciesCard(species)));
-            }
-            
-            function applyFilters() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                document.querySelectorAll('#species-grid .species-card').forEach(card => observer.observe(card));
+            };
+
+            const applyFilters = () => {
                 let filteredSpecies = [...allSpecies];
-                if (showingFavorites) {
-                    filteredSpecies = allSpecies.filter(s => favorites.includes(s.id));
-                }
+                if (showingFavorites) filteredSpecies = allSpecies.filter(s => favorites.includes(s.id));
                 if (currentStatusFilter !== 'all') filteredSpecies = filteredSpecies.filter(s => s.status === currentStatusFilter);
                 if (currentSearchTerm) {
                     const term = currentSearchTerm.toLowerCase();
                     filteredSpecies = filteredSpecies.filter(s => s.name.toLowerCase().includes(term) || s.scientificName.toLowerCase().includes(term));
                 }
                 renderSpecies(filteredSpecies);
-            }
-            
-            function toggleFavorite(speciesId) {
-                const index = favorites.indexOf(speciesId);
-                if (index > -1) favorites.splice(index, 1); 
-                else favorites.push(speciesId); 
-                localStorage.setItem('aquaFavorites', JSON.stringify(favorites));
-                
-                const cardInGrid = grid.querySelector(`.species-card[data-id='${speciesId}'] .card-fav-btn`);
-                cardInGrid?.classList.toggle('favorited', index === -1);
+            };
 
+            const toggleFavorite = (speciesId) => {
+                const index = favorites.indexOf(speciesId);
+                if (index > -1) favorites.splice(index, 1);
+                else favorites.push(speciesId);
+                localStorage.setItem('aquaFavorites', JSON.stringify(favorites));
+                const cardInGrid = grid.querySelector(`.species-card[data-id='${speciesId}'] .card-fav-btn`);
+                if (cardInGrid) cardInGrid.classList.toggle('favorited', index === -1);
                 if (showingFavorites) applyFilters();
-            }
-            
-            function updateFilterIndicator(activeButton) {
+            };
+
+            const updateActiveFilterButton = (activeButton) => {
                 filterButtons.forEach(btn => btn.classList.remove('active'));
                 activeButton.classList.add('active');
-                const left = activeButton.offsetLeft;
-                const width = activeButton.offsetWidth;
-                filterIndicator.style.transform = `translateX(${left}px)`;
-                filterIndicator.style.width = `${width}px`;
-                filterIndicator.className = 'filter-indicator'; 
-                filterIndicator.classList.add(statusColors[activeButton.dataset.status]);
-            }
-            
-            closeDetailsModalBtn.addEventListener('click', () => closeModal(detailsModal));
-            detailsModal.addEventListener('click', e => { if(e.target === detailsModal) closeModal(detailsModal); });
-            
+                const status = activeButton.dataset.status;
+                const color = statusColors[status];
+                statusFilterContainer.style.setProperty('--active-filter-color', color);
+            };
+
+            detailsModal.addEventListener('click', e => { if (e.target === detailsModal) closeModal(detailsModal); });
+            addModal.addEventListener('click', e => { if (e.target === addModal) closeModal(addModal); });
             addSpeciesBtn.addEventListener('click', () => openModal(addModal));
             closeAddModalBtn.addEventListener('click', () => closeModal(addModal));
-            addModal.addEventListener('click', e => { if(e.target === addModal) closeModal(addModal); });
 
             addSpeciesForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const formData = new FormData(addSpeciesForm);
-                const newSpecies = Object.fromEntries(formData.entries());
+                const newSpecies = Object.fromEntries(new FormData(addSpeciesForm).entries());
                 newSpecies.id = Date.now();
-                
-                let userSpecies = JSON.parse(localStorage.getItem('userSpecies')) || [];
+                const userSpecies = JSON.parse(localStorage.getItem('userSpecies')) || [];
                 userSpecies.push(newSpecies);
                 localStorage.setItem('userSpecies', JSON.stringify(userSpecies));
-                
                 allSpecies.push(newSpecies);
                 applyFilters();
                 addSpeciesForm.reset();
@@ -226,14 +320,14 @@
             });
 
             searchInput.addEventListener('input', e => { currentSearchTerm = e.target.value; applyFilters(); });
-            
+
             statusFilterContainer.addEventListener('click', e => {
                 const targetButton = e.target.closest('.filter-btn');
                 if (!targetButton) return;
                 showingFavorites = false;
-                favoritesBtn.classList.remove('text-yellow-500');
+                favoritesBtn.classList.remove('scale-125', 'text-yellow-400');
                 currentStatusFilter = targetButton.dataset.status;
-                updateFilterIndicator(targetButton);
+                updateActiveFilterButton(targetButton);
                 applyFilters();
             });
 
@@ -241,29 +335,44 @@
                 showingFavorites = !showingFavorites;
                 currentSearchTerm = '';
                 searchInput.value = '';
-                favoritesBtn.classList.toggle('text-yellow-500', showingFavorites);
+                favoritesBtn.classList.toggle('scale-125');
+                favoritesBtn.classList.toggle('text-yellow-400', showingFavorites);
                 if (showingFavorites) {
                     currentStatusFilter = 'all';
-                    updateFilterIndicator(filterButtons[0]);
+                    updateActiveFilterButton(filterButtons[0]);
                 }
                 applyFilters();
             });
             
-            function createBubbles() { for (let i = 0; i < 44; i++) { const b = document.createElement('span'); const s = `${Math.random()*45+10}px`; b.style.setProperty('--size',s); b.style.setProperty('--left',`${Math.random()*100}%`); b.style.setProperty('--duration',`${Math.random()*15+10}s`); b.style.setProperty('--delay',`${Math.random()*5}s`); background.appendChild(b); } }
-
-            function init() {
-                loadSpecies();
-                createBubbles();
-                const activeButton = document.querySelector('.filter-btn.active') || filterButtons[0];
-                updateFilterIndicator(activeButton);
-                applyFilters();
-                window.addEventListener('resize', () => {
-                    const activeBtn = document.querySelector('.filter-btn.active') || filterButtons[0];
-                    updateFilterIndicator(activeBtn);
+            exploreBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector(exploreBtn.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
                 });
-            }
-            init();
+            });
+
+            window.addEventListener('scroll', () => {
+                mainHeader.classList.toggle('header-scrolled', window.scrollY > 50);
+            });
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.animated-section').forEach(section => observer.observe(section));
+
+            loadSpecies();
+            const activeButton = document.querySelector('.filter-btn.active') || filterButtons[0];
+            updateActiveFilterButton(activeButton);
+            applyFilters();
+            window.addEventListener('resize', () => {
+                const activeBtn = document.querySelector('.filter-btn.active') || filterButtons[0];
+                updateActiveFilterButton(activeBtn);
+            });
         });
     </script>
 </body>
-</html>
+</ht
